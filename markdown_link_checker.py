@@ -1,6 +1,12 @@
+""" markdown-link-checker
+scans a markdown file for links (and images, which use the same label(url)
+syntax with a leading "!") and optionally makes an http request to each http(s) link 
+to see whether it's still alive """ 
+
 import argparse
 import json
 import re
+from urllib.error import HTTPError , URLError 
 from urllib.request import Request, urlopen
 
 LINK = re.compile(r"!?\[([^]]*)\]\(([^)\s]+)(?:\s+['\"][^'\"]*['\"])?\)")
