@@ -10,13 +10,20 @@ from urllib.error import HTTPError , URLError
 from urllib.request import Request, urlopen
 
 LINK = re.compile(r"!?\[([^]]*)\]\(([^)\s]+)(?:\s+['\"][^'\"]*['\"])?\)")
-
+#Breakdown of the pattern:
+# !?         ---->          optional"!" for images
+#\[([^]]*)\]                the [label] part; "[^]]*" means "any characters that aren't ']'"
+#(?:\s+['\"][^'\"]*['\"])?    optional "title"
+#\)                          the closing ")"
 
 def extract(text):
+    """"this will return every link/image in 'text' as {"label":.....,"url":...}"""
     return [{"label": match.group(1), "url": match.group(2)} for match in LINK.finditer(text)]
 
 
 def local_links(text):
+     """"this will return """
+   
     excluded = ("http://", "https://", "mailto:", "tel:")
     return [link for link in extract(text) if not link["url"].startswith(excluded) and not link["url"].startswith("#")]
 
