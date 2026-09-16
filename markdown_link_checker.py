@@ -3,6 +3,7 @@
 import argparse
 import json
 import re
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -20,6 +21,16 @@ def local_links(text):
     return [link for link in extract(text) if not link["url"].lower().startswith(excluded)]
 
 
+def check_local(url, base_dir):
+    """Report whether a local Markdown link resolves from the source file's directory."""
+    path_part = url.split("#", 1)[0].split("?", 1)[0]
+    if not path_part:
+        return {"url": url, "ok": True}
+
+    path = Path(base_dir, path_part)
+    return {"url": url, "ok": path.exists()}
+
+
 def check(url, timeout=5):
     """Make an HTTP request and report whether the response looks successful."""
     try:
@@ -35,13 +46,15 @@ def check(url, timeout=5):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Extract Markdown links and optionally check HTTP URLs")
+    parser = argparse.ArgumentParser(description="Extract Markdown links and optionally check HTTP or local links")
     parser.add_argument("file", help="Markdown file to scan")
     parser.add_argument("--check", action="store_true", help="also check HTTP(S) links")
+    parser.add_argument("--check-local", action="store_true", help="also check links to local files")
     parser.add_argument("--timeout", type=float, default=5, help="HTTP timeout in seconds (default: 5)")
     args = parser.parse_args()
 
-    with open(args.file, encoding="utf-8") as source:
+    source_path = Path(args.file)
+    with source_path.open(encoding="utf-8") as source:
         links = extract(source.read())
 
     if args.check:
@@ -50,6 +63,11 @@ def main():
             if link["url"].lower().startswith(("http://", "https://"))
         )
         result = [check(url, timeout=args.timeout) for url in urls]
+    elif args.check_local:
+        urls = dict.fromkeys(link["url"] for link in local_links("\n".join(
+            f"[{link['label']}]({link['url']})" for link in links
+        )))
+        result = [check_local(url, source_path.parent) for url in urls]
     else:
         result = links
 
