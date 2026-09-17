@@ -7,6 +7,7 @@ A dependency-free Python utility that extracts links and images from Markdown fi
 - Extract Markdown links and images, including optional titles
 - Separate local file references from web links, email addresses, telephone links, and anchors
 - Check HTTP(S) URLs with status-aware error reporting
+- Check local file links relative to the scanned Markdown file
 - Configure network timeouts and avoid checking duplicate URLs
 - Run with only Python’s standard library
 
@@ -34,6 +35,14 @@ Set a custom network timeout in seconds:
 python markdown_link_checker.py README.md --check --timeout 10
 ```
 
+Check local file links, including links with anchors or query strings:
+
+```bash
+python markdown_link_checker.py README.md --check-local
+```
+
+The local check reports each unique local target as `ok: true` when the file exists relative to the scanned Markdown file. Anchor-only links are treated as valid because they do not reference a separate file.
+
 Example output:
 
 ```json
@@ -54,7 +63,7 @@ The project uses Python’s built-in `unittest` framework, so no package install
 python -m unittest discover -s tests -v
 ```
 
-The tests cover Markdown extraction, local-link filtering, successful and failed HTTP checks, timeout forwarding, and duplicate URL handling.
+The tests cover Markdown extraction, local-link filtering and validation, successful and failed HTTP checks, timeout forwarding, and duplicate URL handling.
 
 ## License
 

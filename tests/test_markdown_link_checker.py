@@ -28,6 +28,17 @@ class MarkdownLinkCheckerTests(unittest.TestCase):
             ],
         )
 
+    def test_check_local_handles_existing_missing_and_anchor_links(self):
+        root = pathlib.Path(__file__).parent
+        existing = root / "_existing.md"
+        existing.write_text("content", encoding="utf-8")
+        try:
+            self.assertEqual(checker.check_local("_existing.md#intro", root), {"url": "_existing.md#intro", "ok": True})
+            self.assertEqual(checker.check_local("_missing.md", root), {"url": "_missing.md", "ok": False})
+            self.assertEqual(checker.check_local("#intro", root), {"url": "#intro", "ok": True})
+        finally:
+            existing.unlink(missing_ok=True)
+
     def test_local_links_excludes_web_special_and_anchors(self):
         text = (
             "[local](docs/guide.md) [web](HTTPS://example.com) "
